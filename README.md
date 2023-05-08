@@ -2,10 +2,10 @@
 Schema Auto Generator is a Streamlit-based web application designed to help users create data extraction schemas from user inputs. The application allows users to define input fields, their descriptions, and the expected results for each input. The generated schema includes validation for the first input ID to ensure it's not empty.
 
 # Features
--User-friendly interface for defining data extraction tasks
--Customizable input fields and descriptions
--Generates Pydantic schema classes with data validation
--Displays the generated schema with proper formatting
+- User-friendly interface for defining data extraction tasks
+- Customizable input fields and descriptions
+- Generates Pydantic schema classes with data validation
+- Displays the generated schema with proper formatting
 
 # Installation
 To set up the Schema Auto Generator locally, follow these steps:
