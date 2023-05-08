@@ -8,16 +8,10 @@ Structured Data Extractor is a Streamlit-based web application designed to help 
 - Displays the generated schema with proper formatting
 
 
-# Installation
-To set up the locally, follow these steps:
-
-Clone the repository:
-git clone https://github.com/yourusername/schema-auto-generator.git
-
-The application should now be running on your local machine.
 
 # Usage
-- Open your browser and go to the Streamlit app URL (usually http://localhost:8501).
+
+- Open your browser and go to the Streamlit app URL (https://doc-to-text-pushkarlakhe.streamlit.app/).
 - Upload a PDF file (optional) for reference.
 - Enter a short description of the data extraction task.
 - Define the input fields and their descriptions using the provided text inputs.
