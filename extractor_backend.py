@@ -12,7 +12,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.callbacks import get_openai_callback
 
 # It's better to do this an environment variable but putting it in plain text for clarity
-openai_api_key = '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'
+openai_api_key = 'Your OPEN AI API KEY'
 
 # Using gpt-3.5-turbo which is pretty cheap, but has worse quality
 llm = ChatOpenAI(temperature=0,openai_api_key=openai_api_key)
