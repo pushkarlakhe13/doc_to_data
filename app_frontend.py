@@ -46,7 +46,7 @@ schemas from user inputs and then uses a GPT model to extract relevant informati
 """)
 
 # Image
-st.image("DryvIQ-Unstructured-VS-Structured-Data-Diagram-Light.png", use_column_width=True, caption="Structured VS Unstructured Data")
+#st.image("DryvIQ-Unstructured-VS-Structured-Data-Diagram-Light.png", use_column_width=True, caption="Structured VS Unstructured Data")
 
 # Upload a PDF file
 uploaded_file = st.file_uploader("Upload a PDF file", type=['pdf'])
