@@ -4,8 +4,8 @@ from typing import List
 import os
 
 # Import app backend functions
-from app_backend_2 import process_pdf_file 
-from app_backend_2 import create_display_schema
+from app_backend  import process_pdf_file 
+from app_backend import create_display_schema
 
 
 # Set the page title and icon for the app
