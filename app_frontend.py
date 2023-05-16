@@ -4,10 +4,10 @@ from typing import List
 import os
 
 # Import app backend functions
-from app_backend_2 import process_pdf_file 
-from app_backend_2 import create_display_schema
-from app_backend_2 import execute_extraction
-from app_backend_2 import use_openai_key
+from app_backend import process_pdf_file 
+from app_backend import create_display_schema
+from app_backend import execute_extraction
+from app_backend import use_openai_key
 
 # Adding session State : 
 class _SessionState:
