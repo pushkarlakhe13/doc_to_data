@@ -1,7 +1,46 @@
+ Add the required imports
+import itertools
+import pandas as pd
+from typing import List, Optional
+import itertools
+import requests
+import pandas as pd
+from pydantic import BaseModel, Field, validator
+from kor import extract_from_documents, from_pydantic, create_extraction_chain
+from kor.documents.html import MarkdownifyHTMLProcessor
+from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
+from langchain.schema import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader
-import streamlit as st
-from typing import List
+
 import os
+
+#Defining session state 
+class _SessionState:
+    def __init__(self, **kwargs):
+        for key, val in kwargs.items():
+            setattr(self, key, val)
+
+
+def get(**kwargs):
+    from streamlit.report_thread import get_report_ctx
+    from streamlit.server.server import Server
+
+    ctx = get_report_ctx()
+    session_id = ctx.session_id
+    session_info = Server.get_current()._get_session_info(session_id)
+
+    if session_info is None:
+        raise RuntimeError("Could not get your Streamlit Session")
+
+    if not hasattr(session_info, "session_state"):
+        session_info.session_state = _SessionState(**kwargs)
+
+    return session_info.session_state
+
+
+#PDf Extractor 
 
 def process_pdf_file(user_uploaded_file):
     """
@@ -82,6 +121,50 @@ def create_extraction_schema(task_description, input_ids, input_descs, example_i
 
     return schema, extraction_validator
 
+def use_openai_key(key):
+    try:
+        # Use the key with the OpenAI API
+        llm = ChatOpenAI(temperature=0, openai_api_key=key)
+
+        # Store llm in session state
+        state = get()
+        state.llm = llm
+
+        return llm
+    except Exception as e:
+        # If there's an error (like an invalid key), raise an exception
+        raise Exception("Invalid OpenAI key") from e
+# Create a new function to execute the extraction chain and return the results
+async def execute_extraction(llm, schema, pages, extraction_validator):
+    chain = create_extraction_chain(
+        llm,
+        schema,
+        encoder_or_encoder_class="csv",
+        validator=extraction_validator,
+        input_formatter="triple_quotes",
+    )
+
+    with get_openai_callback() as cb:
+        document_extraction_results = await extract_from_documents(
+            chain, pages, max_concurrency=5, use_uid=False, return_exceptions=True
+        )
+        stats = {
+            "Total Tokens": cb.total_tokens,
+            "Prompt Tokens": cb.prompt_tokens,
+            "Completion Tokens": cb.completion_tokens,
+            "Successful Requests": cb.successful_requests,
+            "Total Cost (USD)": cb.total_cost,
+        }
+
+    validated_data = list(
+        itertools.chain.from_iterable(
+            extraction["validated_data"] for extraction in document_extraction_results
+        )
+    )
+
+    df = pd.DataFrame(record.dict() for record in validated_data)
+
+    return stats, df
 
 
 
