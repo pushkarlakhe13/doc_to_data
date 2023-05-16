@@ -1,18 +1,37 @@
-
 # Required Libraries 
 import streamlit as st
 from typing import List
-from langchain.document_loaders import PyPDFLoader
 import os
 
-from pydantic import create_model
-from typing import List, Tuple
-from pydantic import create_model, Field, validator
-from kor import from_pydantic
-
 # Import app backend functions
-from app_backend  import process_pdf_file 
-from app_backend import create_display_schema
+from app_backend_2 import process_pdf_file 
+from app_backend_2 import create_display_schema
+from app_backend_2 import execute_extraction
+from app_backend_2 import use_openai_key
+
+# Adding session State : 
+class _SessionState:
+    def __init__(self, **kwargs):
+        for key, val in kwargs.items():
+            setattr(self, key, val)
+
+
+def get(**kwargs):
+    from streamlit.report_thread import get_report_ctx
+    from streamlit.server.server import Server
+
+    ctx = get_report_ctx()
+    session_id = ctx.session_id
+    session_info = Server.get_current()._get_session_info(session_id)
+
+    if session_info is None:
+        raise RuntimeError("Could not get your Streamlit Session")
+
+    if not hasattr(session_info, "session_state"):
+        session_info.session_state = _SessionState(**kwargs)
+
+    return session_info.session_state
+
 
 
 # Set the page title and icon for the app
@@ -27,7 +46,7 @@ schemas from user inputs and then uses a GPT model to extract relevant informati
 """)
 
 # Image
-#st.image("DryvIQ-Unstructured-VS-Structured-Data-Diagram-Light.png", use_column_width=True, caption="Structured VS Unstructured Data")
+st.image("DryvIQ-Unstructured-VS-Structured-Data-Diagram-Light.png", use_column_width=True, caption="Structured VS Unstructured Data")
 
 # Upload a PDF file
 uploaded_file = st.file_uploader("Upload a PDF file", type=['pdf'])
@@ -91,6 +110,94 @@ if st.button("Generate Schema"):
     # Display the schema to the user
     st.code(schema_str, language='python')
 
+# Ask the user for their OpenAI key
+openai_key = st.text_input("Enter your OpenAI key", type="password")
+
+# Call the backend function when a button is pressed
+if st.button("Use OpenAI key"):
+    try:
+        # Import the backend function
+        from app_backend_2 import use_openai_key
+        # Call the backend function with the provided key
+        use_openai_key(openai_key)
+        st.success("OpenAI key used successfully.")
+    except Exception as e:
+        # If there's an error, show a message to the user
+        st.error(str(e))
+
+# Initialization
+if 'stats' not in st.session_state:
+    st.session_state['stats'] = None
+if 'df' not in st.session_state:
+    st.session_state['df'] = None
+
+# Add a new button to execute the extraction
+if st.button("Extract Data"):
+    try:
+        # Get the session state
+        state = get()
+
+        # Get the llm, schema, pages, and extraction_validator from the session state
+        llm = state.llm if 'llm' in state else None
+        schema = state.schema if 'schema' in state else None
+        pages = state.pages if 'pages' in state else None
+        extraction_validator = state.extraction_validator if 'extraction_validator' in state else None
+
+        # Call the backend function and update the session state
+        st.session_state['stats'], st.session_state['df'] = execute_extraction(llm, schema, pages, extraction_validator)
+
+        st.success("Data extraction successful.")
+    except Exception as e:
+        # If there's an error, show a message to the user
+        st.error(str(e))
+
+# Display the extraction stats
+if st.session_state.stats is not None:
+    st.header("Extraction Stats")
+    for key, value in st.session_state.stats.items():
+        st.write(f"{key}: {value}")
+
+# Add a new button to preview the extracted data
+if st.button("Preview Extracted Data"):
+    if st.session_state.df is not None:
+        st.dataframe(st.session_state.df.head())  # Show the first 5 rows of the dataframe
+    else:
+        st.info("No data to preview.")
+# # Initialize SessionState
+# state = SessionState.get(llm=None, schema=None, extraction_validator=None, pages=None, stats=None, df=None)
+
+# # Call the backend function when a button is pressed
+# if st.button("Use OpenAI key"):
+#     try:
+#         # Call the backend function with the provided key and update the state
+#         state.llm = use_openai_key(openai_key)
+#         st.success("OpenAI key used successfully.")
+#     except Exception as e:
+#         # If there's an error, show a message to the user
+#         st.error(str(e))
+# # Add a new button to execute the extraction
+# if st.button("Extract Data"):
+#     try:
+#         # Call the backend function and update the state
+#         state.stats, state.df = execute_extraction(state.llm, state.schema, state.pages, state.extraction_validator)
+#         st.success("Data extraction successful.")
+#     except Exception as e:
+#         # If there's an error, show a message to the user
+#         st.error(str(e))
+
+# # Display the extraction stats
+# if state.stats is not None:
+#     st.header("Extraction Stats")
+#     for key, value in state.stats.items():
+#         st.write(f"{key}: {value}")
+
+# # Add a new button to preview the extracted data
+# if st.button("Preview Extracted Data"):
+#     if state.df is not None:
+#         st.dataframe(state.df.head())  # Show the first 5 rows of the dataframe
+#     else:
+#         st.info("No data to preview.")
+#
 # # Generate schema button
 # if st.button("Generate Schema"):
 #     # Generate the Pydantic schema
@@ -125,3 +232,14 @@ if st.button("Generate Schema"):
 #     b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
 #     href = f'<a href="data:file/csv;base64,{b64}" download="extracted_data.csv">Download Extracted Data as CSV</a>'
 #     st.markdown(href, unsafe_allow_html=True)
+
+
+
+
+
+
+
+
+
+
+
