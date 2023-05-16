@@ -7,7 +7,6 @@ import requests
 import pandas as pd
 from pydantic import BaseModel, Field, validator
 from kor import extract_from_documents, from_pydantic, create_extraction_chain
-from kor.documents.html import MarkdownifyHTMLProcessor
 from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import Document
