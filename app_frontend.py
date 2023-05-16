@@ -2,7 +2,13 @@ pip install altair
 # Required Libraries 
 import streamlit as st
 from typing import List
+from langchain.document_loaders import PyPDFLoader
 import os
+
+from pydantic import create_model
+from typing import List, Tuple
+from pydantic import create_model, Field, validator
+from kor import from_pydantic
 
 # Import app backend functions
 from app_backend  import process_pdf_file 
