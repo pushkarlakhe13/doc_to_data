@@ -1,3 +1,4 @@
+pip install altair
 # Required Libraries 
 import streamlit as st
 from typing import List
